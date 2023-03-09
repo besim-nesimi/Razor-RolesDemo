@@ -1,0 +1,19 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+
+<form method="post">
+    <label for="username-input">Username:</label>
+    <br />
+    <input id="username-input" type="text" placeholder="Username" asp-for="@Model.Username"/>
+    <br />
+    <label for="password-input">Password:</label>
+    <br />
+    <input id="password-input" type="password" placeholder="Password" asp-for="@Model.Password"/>
+    <br />
+    <input type="submit" value="Sign in"/>
+</form>
+<a class="btn btn-dark" asp-page="/Register">Click here to register</a>
