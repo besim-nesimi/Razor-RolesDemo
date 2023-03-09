@@ -31,13 +31,46 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 });
 
+
+// Skapa en instans av serviceProvider så att vi kan komma åt allt som ligger i DI container
 using (ServiceProvider serviceProvider = builder.Services.BuildServiceProvider())
 {
+
+    // Skapa variabler för allt som ligger i DI container
     var context = serviceProvider.GetRequiredService<AuthDbContext>();
     var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
     var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+    // Säkerställ att Databasen är skapad... Annars skapa den!
+    context.Database.Migrate();
 
+    if (!roleManager.RoleExistsAsync("Admin").GetAwaiter().GetResult())
+    {
+        // Skapa en instans av en klass för admin
+        IdentityRole adminRole = new()
+        {
+            Name = "Admin",
+        };
+
+        // Skapa adminrollen i databasen synkront. Vi vill skapa rollen synkront, eftersom appen ska ej fortsätta byggas innan rollen är med.
+        var createRoleResult = roleManager.CreateAsync(adminRole).GetAwaiter().GetResult(); // GetAwaiter().GetResult(); Gör något som är ett asynkront call till synkront.
+
+
+        // Om vi kunde skapa adminrollen
+        if (createRoleResult.Succeeded)
+        {
+            // Hämta en användare med ett username
+            IdentityUser? user = userManager.FindByNameAsync("Besim123").GetAwaiter().GetResult();
+
+            // Om vi hittade en user...
+            if (user != null)
+            {
+                // Lägg till den nya adminrollen till användaren
+                var addToRoleResult = userManager.AddToRoleAsync(user, "Admin").GetAwaiter().GetResult();
+            }
+
+        }
+    }
 }
 
 
